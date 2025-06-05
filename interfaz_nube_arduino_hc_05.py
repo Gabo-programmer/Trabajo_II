@@ -35,10 +35,10 @@ except serial.SerialException:
 
 # ─── NOMBRES HUMANOS DE LOS SENSORES ───
 nombres_sensores = {
-    'T1': "Temp DHT11 (°C)",
-    'D':  "Distancia (cm)",
-    'T2': "Temp LM35 (°C)",
-    'P':  "Presión (hPa)"
+    'T': "Temp DHT11 (°C)",
+    'D': "Distancia (cm)",
+    'G': "Gas MQ-2 (ppm aprox.)",
+    'H': "Humedad (%)"
 }
 
 # ─── INTERFAZ ───────────────────────────
@@ -78,7 +78,7 @@ def crear_excel_si_no_existe():
         libro = openpyxl.Workbook()
         hoja = libro.active
         hoja.title = "DatosSensores"
-        hoja.append(["Fecha", "Hora", "Temp DHT11", "Distancia", "Temp LM35", "Presión"])
+        hoja.append(["Fecha", "Hora", "Temp DHT11", "Distancia", "Gas MQ-2", "Humedad"])
         libro.save(EXCEL_PATH)
         print("📄 Archivo Excel creado con encabezados.")
 
@@ -92,10 +92,10 @@ def grabar_datos():
     fila = [
         fecha,
         hora,
-        datos_actuales['T1'],
+        datos_actuales['T'],
         datos_actuales['D'],
-        datos_actuales['T2'],
-        datos_actuales['P']
+        datos_actuales['G'],
+        datos_actuales['H']
     ]
 
     # Cargar y guardar antes de git
@@ -109,10 +109,10 @@ def grabar_datos():
 
     # Construcción del mensaje
     mensaje = f"✔ Datos guardados:\nFecha: {fecha}\nHora: {hora}\n"
-    mensaje += f"{nombres_sensores['T1']}: {datos_actuales['T1']} °C\n"
+    mensaje += f"{nombres_sensores['T']}: {datos_actuales['T']} °C\n"
     mensaje += f"{nombres_sensores['D']}: {datos_actuales['D']} cm\n"
-    mensaje += f"{nombres_sensores['T2']}: {datos_actuales['T2']} °C\n"
-    mensaje += f"{nombres_sensores['P']}: {datos_actuales['P']} hPa"
+    mensaje += f"{nombres_sensores['G']}: {datos_actuales['G']} ppm aprox.\n"
+    mensaje += f"{nombres_sensores['H']}: {datos_actuales['H']} %"
 
     # Mostrar en la interfaz
     notificacion.config(text=mensaje, fg="green")
