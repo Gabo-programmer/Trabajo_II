@@ -8,7 +8,7 @@ from datetime import datetime
 import subprocess
 
 # ─── CONFIGURACIÓN ─────────────────────
-EXCEL_PATH = "datos_sensores.xlsx"  # Debe estar dentro del repositorio clonado
+EXCEL_PATH = "datos_sensores.xlsx"  # Dentro del repositorio clonado
 
 # ─── DETECCIÓN AUTOMÁTICA DEL PUERTO ───
 def detectar_puerto_bluetooth():
@@ -72,39 +72,68 @@ def leer_datos():
             except:
                 continue
 
+# ─── CREAR ARCHIVO EXCEL SI NO EXISTE ───────
+def crear_excel_si_no_existe():
+    if not os.path.exists(EXCEL_PATH):
+        libro = openpyxl.Workbook()
+        hoja = libro.active
+        hoja.title = "DatosSensores"
+        hoja.append(["Fecha", "Hora", "Temp DHT11", "Distancia", "Temp LM35", "Presión"])
+        libro.save(EXCEL_PATH)
+        print("📄 Archivo Excel creado con encabezados.")
+
 # ─── GUARDAR EN EXCEL + GIT PUSH ───────
 def grabar_datos():
+    crear_excel_si_no_existe()
+
+    fecha = datetime.now().strftime("%Y-%m-%d")
+    hora = datetime.now().strftime("%H:%M:%S")
+
     fila = [
-        datetime.now().strftime("%Y-%m-%d"),
-        datetime.now().strftime("%H:%M:%S"),
+        fecha,
+        hora,
         datos_actuales['T1'],
         datos_actuales['D'],
         datos_actuales['T2'],
         datos_actuales['P']
     ]
 
-    if os.path.exists(EXCEL_PATH):
-        libro = openpyxl.load_workbook(EXCEL_PATH)
-        hoja = libro.active
-    else:
-        libro = openpyxl.Workbook()
-        hoja = libro.active
-        hoja.append(["Fecha", "Hora", "Temp DHT11", "Distancia", "Temp LM35", "Presión"])
-
+    # Cargar y guardar antes de git
+    libro = openpyxl.load_workbook(EXCEL_PATH)
+    hoja = libro.active
     hoja.append(fila)
-    libro.save(EXCEL_PATH)
+    libro.save(EXCEL_PATH)  #Guardar antes del git add
 
+    # Confirmación por consola
+    print("📥 Datos grabados en el archivo Excel correctamente.")
+
+    # Construcción del mensaje
+    mensaje = f"✔ Datos guardados:\nFecha: {fecha}\nHora: {hora}\n"
+    mensaje += f"{nombres_sensores['T1']}: {datos_actuales['T1']} °C\n"
+    mensaje += f"{nombres_sensores['D']}: {datos_actuales['D']} cm\n"
+    mensaje += f"{nombres_sensores['T2']}: {datos_actuales['T2']} °C\n"
+    mensaje += f"{nombres_sensores['P']}: {datos_actuales['P']} hPa"
+
+    # Mostrar en la interfaz
+    notificacion.config(text=mensaje, fg="green")
+
+    # Comandos Git en orden
     try:
         subprocess.run(["git", "add", "."], check=True)
-        subprocess.run(["git", "commit", "-m", "Datos sensores actualizados"], check=True)
+        subprocess.run(["git", "commit", "-m", f"Actualización {datetime.now().isoformat()}"], check=True)
         subprocess.run(["git", "push"], check=True)
-        print("✅ Datos subidos a GitHub.")
+        print("✅ Cambios subidos a GitHub correctamente.")
     except subprocess.CalledProcessError as e:
-        print(f"⚠️ Error al subir a GitHub: {e}")
+        notificacion.config(text="⚠️ Error al subir a GitHub", fg="red")
+        print(f"⚠️ Git error: {e}")
 
 # ─── BOTÓN DE GRABAR ───────────────────
 boton = tk.Button(ventana, text="Grabar", font=("Arial", 14), command=grabar_datos)
 boton.pack(pady=10)
+
+# Área de notificación visual
+notificacion = tk.Label(ventana, text="", font=("Arial", 12), fg="green", justify="left")
+notificacion.pack(pady=10)
 
 # ─── INICIAR HILO DE LECTURA ───────────
 hilo = threading.Thread(target=leer_datos, daemon=True)
