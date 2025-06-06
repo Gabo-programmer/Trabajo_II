@@ -143,12 +143,13 @@ def guardar_en_google_sheets(fila):
 
         # Abrir hoja de cálculo por nombre (colocar nombre de hoja de cálculo)
         hoja = cliente.open("Datos_Sensores_Arduino").sheet1
+        encabezados = ["Fecha", "Hora", "Temp DHT11", "Distancia", "Gas MQ-2", "Humedad"]
+        primera_fila = hoja.row_values(1)
 
-        # Verificar si la hoja está vacía (sin encabezados)
-        if not hoja.get_all_values():
-            encabezados = ["Fecha", "Hora", "Temp DHT11", "Distancia", "Gas MQ-2", "Humedad"]
-            hoja.append_row(encabezados)
-            print("📝 Encabezados añadidos a Google Sheets.")
+        # Verificar si ya existen encabezados
+        if primera_fila != encabezados:
+            hoja.insert_row(encabezados, 1)
+            print("📝 Encabezados escritos en Google Sheets.")
 
         # Agregar la fila de datos
         hoja.append_row(fila)
