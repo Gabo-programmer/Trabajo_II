@@ -26,14 +26,14 @@ PUERTO_BLUETOOTH = detectar_puerto_bluetooth()
 BAUDIOS = 9600
 
 if PUERTO_BLUETOOTH is None:
-    print("❌ No se detectó el módulo Bluetooth HC-05.")
+    print("No se detectó el módulo Bluetooth HC-05.")
     exit()
 
 try:
     ser = serial.Serial(PUERTO_BLUETOOTH, BAUDIOS, timeout=1)
-    print(f"✅ Conectado al puerto {PUERTO_BLUETOOTH}")
+    print(f"Conectado al puerto {PUERTO_BLUETOOTH}")
 except serial.SerialException:
-    print(f"❌ Error al abrir el puerto {PUERTO_BLUETOOTH}")
+    print(f"Error al abrir el puerto {PUERTO_BLUETOOTH}")
     exit()
 
 # ─── NOMBRES HUMANOS DE LOS SENSORES ───
@@ -83,7 +83,7 @@ def crear_excel_si_no_existe():
         hoja.title = "DatosSensores"
         hoja.append(["Fecha", "Hora", "Temp DHT11", "Distancia", "Gas MQ-2", "Humedad"])
         libro.save(EXCEL_PATH)
-        print("📄 Archivo Excel creado con encabezados.")
+        print("Archivo Excel creado con encabezados.")
 
 # ─── GUARDAR EN EXCEL + GIT PUSH ───────
 def grabar_datos():
@@ -108,7 +108,7 @@ def grabar_datos():
     libro.save(EXCEL_PATH)  #Guardar antes del git add
 
     # Confirmación por consola
-    print("📥 Datos grabados en el archivo Excel correctamente.")
+    print("Datos grabados en el archivo Excel correctamente.")
     
     # Guardar también en Google Sheets
     guardar_en_google_sheets(fila)
@@ -128,10 +128,10 @@ def grabar_datos():
         subprocess.run(["git", "add", "."], check=True)
         subprocess.run(["git", "commit", "-m", f"Actualización {datetime.now().isoformat()}"], check=True)
         subprocess.run(["git", "push"], check=True)
-        print("✅ Cambios subidos a GitHub correctamente.")
+        print("Cambios subidos a GitHub correctamente.")
     except subprocess.CalledProcessError as e:
-        notificacion.config(text="⚠️ Error al subir a GitHub", fg="red")
-        print(f"⚠️ Git error: {e}")
+        notificacion.config(text="Error al subir a GitHub", fg="red")
+        print(f"Git error: {e}")
 
 # ─── GUARDAR EN GOOGLE SHEETS ───────
 def guardar_en_google_sheets(fila):
@@ -149,14 +149,14 @@ def guardar_en_google_sheets(fila):
         # Verificar si ya existen encabezados
         if primera_fila != encabezados:
             hoja.insert_row(encabezados, 1)
-            print("📝 Encabezados escritos en Google Sheets.")
+            print("Encabezados escritos en Google Sheets.")
 
         # Agregar la fila de datos
         hoja.append_row(fila)
-        print("✅ Datos también guardados en Google Sheets.")
+        print("Datos también guardados en Google Sheets.")
     except Exception as e:
-        print(f"⚠️ Error al guardar en Google Sheets: {e}")
-        notificacion.config(text="⚠️ Error en Google Sheets", fg="orange")
+        print(f"Error al guardar en Google Sheets: {e}")
+        notificacion.config(text="Error en Google Sheets", fg="orange")
 
 # ─── BOTÓN DE GRABAR ───────────────────
 boton = tk.Button(ventana, text="Grabar", font=("Arial", 14), command=grabar_datos)
