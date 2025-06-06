@@ -6,6 +6,9 @@ import openpyxl
 import os
 from datetime import datetime
 import subprocess
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+
 
 # ─── CONFIGURACIÓN ─────────────────────
 EXCEL_PATH = "datos_sensores.xlsx"  # Dentro del repositorio clonado
@@ -106,6 +109,9 @@ def grabar_datos():
 
     # Confirmación por consola
     print("📥 Datos grabados en el archivo Excel correctamente.")
+    
+    # Guardar también en Google Sheets
+    guardar_en_google_sheets(fila)
 
     # Construcción del mensaje
     mensaje = f"✔ Datos guardados:\nFecha: {fecha}\nHora: {hora}\n"
@@ -126,6 +132,30 @@ def grabar_datos():
     except subprocess.CalledProcessError as e:
         notificacion.config(text="⚠️ Error al subir a GitHub", fg="red")
         print(f"⚠️ Git error: {e}")
+
+# ─── GUARDAR EN GOOGLE SHEETS ───────
+def guardar_en_google_sheets(fila):
+    try:
+        # Autenticación
+        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+        credenciales = ServiceAccountCredentials.from_json_keyfile_name("credenciales_google.json", scope)
+        cliente = gspread.authorize(credenciales)
+
+        # Abrir hoja de cálculo por nombre (colocar nombre de hoja de cálculo)
+        hoja = cliente.open("Datos_Sensores_Arduino").sheet1
+
+        # Verificar si la hoja está vacía (sin encabezados)
+        if not hoja.get_all_values():
+            encabezados = ["Fecha", "Hora", "Temp DHT11", "Distancia", "Gas MQ-2", "Humedad"]
+            hoja.append_row(encabezados)
+            print("📝 Encabezados añadidos a Google Sheets.")
+
+        # Agregar la fila de datos
+        hoja.append_row(fila)
+        print("✅ Datos también guardados en Google Sheets.")
+    except Exception as e:
+        print(f"⚠️ Error al guardar en Google Sheets: {e}")
+        notificacion.config(text="⚠️ Error en Google Sheets", fg="orange")
 
 # ─── BOTÓN DE GRABAR ───────────────────
 boton = tk.Button(ventana, text="Grabar", font=("Arial", 14), command=grabar_datos)
